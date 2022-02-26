@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--        命名空间-->
+<mapper namespace="com.test.mapper.StudentMapper">
+
+    <!--    id:唯一标识
+            type：映射的类型，支持别名
+            resultMap：
+                1.定义在<resultMap>属性上
+                2.使用<select>标签中，使用<resultMap>替换使用<resultType>
+            -->
+    <resultMap id="studentResultMap" type="student">
+        <!--        id：完成主键的映射
+                        column：表的列明
+                        property：实体类的属性名
+                    result:完成一般映射的映射-->
+        <result column="s_id" property="sId"></result>
+        <result column="s_name" property="sName"></result>
+        <result column="s_age" property="sAge"></result>
+        <result column="s_sex" property="sSex"></result>
+    </resultMap>
+
+    <!--    *parameterType:可以省略掉-->
+
+    <select id="getStudentList" resultMap="studentResultMap">
+        select *
+        from student
+    </select>
+
+    <select id="selectStudentById" resultMap="studentResultMap">
+        select *
+        from student
+        where student.s_id = #{s_id}
+    </select>
+
+    <!--    条件查询-->
+    <!--    <select id="selectStudentByCondition" resultType="Student">-->
+    <!--        select *-->
+    <!--        from student-->
+    <!--        where s_name like #{s_name}-->
+    <!--          and s_age = #{s_age}-->
+    <!--          and s_sex = #{s_sex}-->
+    <!--    </select>-->
+
+
+    <!--    动态SQL条件查询
+    if:条件判断
+        test：逻辑表达式
+    问题：
+        恒等式
+    -->
+    <select id="selectStudentByCondition" resultMap="studentResultMap">
+        select *
+        from student
+        <where>
+            <if test="sName != null">
+                and s_name like #{sName}
+            </if>
+
+            <if test="sAge != null and sAge !='' ">
+                and s_age = #{sAge}
+            </if>
+
+            <if test="sSex != null ">
+                and s_sex = #{sSex}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectStudentByConditionSingle" resultMap="studentResultMap">
+        select *
+        from student
+        <where>
+            <choose>
+                <when test="sName != null">
+                    s_name like #{sName}
+                </when>
+
+                <when test="sAge != null and sAge !='' ">
+                    s_age = #{sAge}
+                </when>
+
+                <when test="sSex != null ">
+                    s_sex = #{sSex}
+                </when>
+            </choose>
+        </where>
+    </select>
+
+    <insert id="insertStudent" useGeneratedKeys="true" keyProperty="sId">
+        insert into student (s_name, s_age, s_sex)
+            value (#{sName}, #{sAge}, #{sSex})
+    </insert>
+
+    <!--    <update id="updateStudent">-->
+    <!--        update student-->
+    <!--        set s_name=#{sName},-->
+    <!--            s_age=#{sAge},-->
+    <!--            s_sex=#{sSex}-->
+    <!--        where s_id = #{sId}-->
+    <!--    </update>-->
+
+    <!--动态SQL条件更改-->
+    <update id="updateStudent">
+        update student
+        <set>
+            <if test="sName != null and sName !=''">
+                s_name=#{sName},
+            </if>
+            <if test="sAge != null and sAge !=''">
+                s_age=#{sAge},
+            </if>
+            <if test="sSex != null and sSex !=''">
+                s_sex=#{sSex}
+            </if>
+        </set>
+        where s_id = #{sId}
+    </update>
+
+
+    <delete id="deleteStudentById">
+        delete
+        from student
+        where s_id = #{sId}
+    </delete>
+
+
+    <!--   StudentMapper
+    当void deleteStudentByIds(@Param("ids") int[] ids);
+    此处collection="its" -->
+    <delete id="deleteStudentByIds">
+        delete
+        from student
+        where s_id in
+        <foreach collection="array" item="sId" separator="," open="(" close=")">
+            #{sId}
+        </foreach>
+    </delete>
+</mapper>
